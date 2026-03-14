@@ -5,33 +5,34 @@ TOKEN = "8609744766:AAH59P3OQ89WTnvna94zsCHlpzoGjhRMaYM"
 CHAT_ID = "1475832381"
 
 def controlla():
-    risultati = []
+    msg_mic = ""
+    msg_roma = ""
     
-    # --- CONTROLLO 1: MINISTERO DELLA CULTURA ---
+    # --- 1. CONTROLLO MINISTERO (MIC) ---
     try:
         r_mic = requests.get("https://www.beniculturali.it/comunicati-ufficiali", timeout=15)
         testo_mic = r_mic.text.lower()
-        if any(p in testo_mic for p in ["diario", "calendario", "1800", "prove", "scritte", "assistenti"]):
-            risultati.append("🚨 MIC: Novità sui diari! https://www.beniculturali.it/comunicati-ufficiali")
+        if any(p in testo_mic for p in ["diario", "calendario", "1800", "assistenti"]):
+            msg_mic = "🚨 MIC: NOVITÀ RILEVATE! Controlla qui: https://www.beniculturali.it/comunicati-ufficiali"
+        else:
+            msg_mic = "✅ MIC: Nessuna novità sui diari oggi."
     except:
-        risultati.append("⚠️ Errore nel controllare il sito del Ministero.")
+        msg_mic = "⚠️ MIC: Errore di collegamento al sito del Ministero."
 
-    # --- CONTROLLO 2: CONCORSIPUBBLICI.COM (ROMA) ---
+    # --- 2. CONTROLLO ROMA (ConcorsiPubblici) ---
     try:
-        # Link filtrato per la provincia di Roma
         url_roma = "https://www.concorsipubblici.com/regione-lazio-provincia-roma.htm"
-        headers = {'User-Agent': 'Mozilla/5.0'} # Facciamo finta di essere un browser
+        headers = {'User-Agent': 'Mozilla/5.0'}
         r_roma = requests.get(url_roma, headers=headers, timeout=15)
-        
-        # Cerchiamo se ci sono bandi molto recenti (es. pubblicati "oggi" o "ieri")
-        # Per ora facciamo un controllo semplice: se il sito risponde, ti diamo il link
         if r_roma.status_code == 200:
-            risultati.append("📍 ROMA PA: Controlla nuovi bandi qui: " + url_roma)
+            msg_roma = "📍 ROMA: Link aggiornato ai concorsi PA: " + url_roma
+        else:
+            msg_roma = "⚠️ ROMA: Sito momentaneamente non raggiungibile."
     except:
-        risultati.append("⚠️ Errore nel controllare ConcorsiPubblici.com")
+        msg_roma = "⚠️ ROMA: Errore tecnico nel controllo."
 
     # --- INVIO MESSAGGIO UNICO ---
-    testo_finale = "\n\n".join(risultati) if risultati else "✅ Nessun aggiornamento oggi."
+    testo_finale = f"{msg_mic}\n\n{msg_roma}"
     url_tg = f"https://api.telegram.org/bot{TOKEN}/sendMessage"
     requests.post(url_tg, json={"chat_id": CHAT_ID, "text": testo_finale})
 
