@@ -1,28 +1,42 @@
 import requests
 
-# I tuoi dati che abbiamo testato e funzionano!
-TOKEN = "8609744766:AAH59P3OQ89WTnvna94zsCHlpzoGjhRMaYM"  # Lascia il tuo token qui dentro
+TOKEN = "IL_TUO_TOKEN_QUI" # Assicurati che ci sia il tuo token
 CHAT_ID = "1475832381"
 
-def controlla_concorsi():
-    link = "https://www.beniculturali.it/comunicati-ufficiali"
+def controlla():
+    messaggi = []
+    
+    # 1. CONTROLLO MINISTERO (Date Diario)
     try:
-        risposta = requests.get(link)
-        testo = risposta.text.lower()
+        r_mic = requests.get("https://www.beniculturali.it/comunicati-ufficiali")
+        testo_mic = r_mic.text.lower()
+        if any(parola in testo_mic for parola in ["diario", "1800", "assistenti", "calendario"]):
+            messaggi.append("🚨 MIC: Possibili novità sui diari! Controlla: https://www.beniculturali.it/comunicati-ufficiali")
+    except:
+        pass
+
+    # 2. CONTROLLO CONCORSANDO (Nuovi concorsi Roma)
+    try:
+        # Puntiamo alla pagina specifica dei concorsi nel Lazio/Roma
+        link_concorsando = "https://www.concorsando.it/blog/concorsi-lazio/"
+        r_cond = requests.get(link_concorsando)
+        testo_cond = r_cond.text.lower()
         
-        # Se trova le parole chiave, ti avvisa con urgenza
-        if "diario" in testo or "calendario" in testo or "date" in testo or "1800" in testo or "assistenti" in testo:
-            messaggio = "🚨 ATTENZIONE SALVATORE: Potrebbero essere uscite le date del concorso MiC! Controlla subito qui: " + link
-        else:
-            # Messaggio di controllo quotidiano
-            messaggio = "✅ Controllo quotidiano MIC: nessuna novità sui diari oggi."
-            
-        url = f"https://api.telegram.org/bot{TOKEN}/sendMessage"
-        payload = {"chat_id": CHAT_ID, "text": messaggio}
-        requests.post(url, json=payload)
-        
-    except Exception as e:
-        print(f"Errore: {e}")
+        # Cerchiamo bandi specifici per Roma usciti di recente
+        if "roma" in testo_cond:
+            messaggi.append("📍 CONCORSANDO: Trovati nuovi riferimenti a ROMA! Guarda qui: " + link_concorsando)
+    except:
+        pass
+
+    # INVIO RISULTATI
+    url = f"https://api.telegram.org/bot{TOKEN}/sendMessage"
+    
+    if messaggi:
+        testo_finale = "\n\n".join(messaggi)
+    else:
+        testo_finale = "✅ Controllo quotidiano completato: nessuna novità rilevante per il MIC o per Roma."
+    
+    requests.post(url, json={"chat_id": CHAT_ID, "text": testo_finale})
 
 if __name__ == "__main__":
-    controlla_concorsi()
+    controlla()
