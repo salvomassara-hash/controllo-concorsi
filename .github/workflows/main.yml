@@ -14,6 +14,9 @@ jobs:
         with:
           python-version: '3.9'
       - name: Installa i permessi
-        run: pip install requests
-      - name: Avvia lo script
+        run: pip install request
+        - name: Avvia lo script
+        env:
+          TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
         run: python script.py
