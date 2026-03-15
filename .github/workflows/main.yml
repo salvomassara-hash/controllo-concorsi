@@ -2,25 +2,26 @@ name: Controllo Concorsi Playwright
 
 on:
   schedule:
-    - cron: '0 7 * * *' # Alle 8:00 italiane
-  workflow_dispatch:
+    - cron: '0 7 * * *' # 8:00 ora italiana
+  workflow_dispatch:      # Ti permette di cliccare "Run workflow" per testare
 
 jobs:
   run-script:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout del codice
-        uses: actions/checkout@v3
+      - name: Checkout codice
+        uses: actions/checkout@v4
 
       - name: Setup Python
         uses: setup-python@v4
         with:
           python-version: '3.9'
 
-      - name: Installa dipendenze
+      - name: Installa Playwright e dipendenze
         run: |
-          pip install requests playwright
-          playwright install chromium --with-deps
+          pip install playwright requests
+          # Questo comando installa il browser E le librerie di sistema necessarie
+          playwright install chromium --with-deps 
 
       - name: Esegui lo script
         env:
