@@ -1,22 +1,29 @@
-name: Controllo Quotidiano Concorsi
+name: Controllo Concorsi Playwright
+
 on:
   schedule:
-    - cron: '0 8 * * *'
+    - cron: '0 7 * * *' # Alle 8:00 italiane
   workflow_dispatch:
 
 jobs:
-  build:
+  run-script:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - name: Installa Python
-        uses: actions/setup-python@v4
+      - name: Checkout del codice
+        uses: actions/checkout@v3
+
+      - name: Setup Python
+        uses: setup-python@v4
         with:
           python-version: '3.9'
-      - name: Installa i permessi
-        run: pip install requests
-      - name: Avvia lo script
+
+      - name: Installa dipendenze
+        run: |
+          pip install requests playwright
+          playwright install chromium --with-deps
+
+      - name: Esegui lo script
         env:
           TELEGRAM_TOKEN: ${{ secrets.TELEGRAM_TOKEN }}
-          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          CHAT_ID: ${{ secrets.CHAT_ID }}
         run: python script.py
